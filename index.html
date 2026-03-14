@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continuity Bridge Visualizations</title>
+  <meta name="description" content="Interactive visualizations explaining how Continuity Bridge maintains AI instance continuity through external memory">
+  
+  <style>
+    /* === CSS Variables === */
+    :root {
+      /* Purple System */
+      --purple-interactive: #7864ff;
+      --purple-decorative: #B565D8;
+      
+      /* Dark Theme (Matrix Noir) - Base CSS */
+      --bg: #0A0A0A;
+      --bg-card: #161616;
+      --bg-hover: #1E1E1E;
+      --text: #E8E8E8;
+      --text-muted: #B8B8B8;
+      --text-dim: #888888;
+      --accent-green: #4DB84D;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    
+    /* Light Theme (Inverted Zim) - DEFAULT via JavaScript */
+    .theme-light {
+      --bg: #F5F5F0;
+      --bg-card: #FFFFFF;
+      --bg-hover: #F0F0EB;
+      --text: #1A1E1A;
+      --text-muted: #3A4A3A;
+      --text-dim: #5A6A5A;
+      --accent-green: #2A8A2A;
+      --border: rgba(0, 0, 0, 0.1);
+    }
+    
+    /* === Base Styles === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* === Header & Navigation === */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background-color 0.3s ease;
+    }
+    
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .nav-brand {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+    }
+    
+    .nav-brand .bridge {
+      color: var(--purple-decorative);
+    }
+    
+    .nav-tagline {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      display: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    .nav-links a:hover {
+      color: var(--purple-decorative);
+    }
+    
+    /* === Theme Toggle === */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      transition: all 0.2s ease;
+    }
+    
+    .theme-toggle:hover {
+      background: var(--bg-card);
+      border-color: var(--purple-interactive);
+    }
+    
+    .theme-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    
+    .toggle-slider {
+      position: relative;
+      width: 2.5rem;
+      height: 1.25rem;
+      background: var(--accent-green);
+      border-radius: 1rem;
+      transition: background 0.3s ease;
+    }
+    
+    .theme-light .toggle-slider {
+      background: var(--purple-interactive);
+    }
+    
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 1rem;
+      height: 1rem;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    
+    .theme-light .toggle-slider::before {
+      transform: translateX(1.25rem);
+    }
+    
+    /* === Main Content === */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+    
+    /* === Hero Section === */
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+      margin-bottom: 4rem;
+    }
+    
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    
+    .hero .tagline {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    
+    .hero .description {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+    
+    /* === Section Headers === */
+    .section-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .section-header h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+    
+    /* === Project Grid === */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+    
+    .project-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+    }
+    
+    .project-card:hover {
+      background: var(--bg-hover);
+      border-color: var(--purple-interactive);
+      transform: translateY(-2px);
+    }
+    
+    .project-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--purple-interactive);
+    }
+    
+    .project-type {
+      display: inline-block;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--bg-hover);
+      border-radius: 0.25rem;
+    }
+    
+    .project-description {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    
+    /* === List Items === */
+    .list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .list-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+    }
+    
+    .list-item:hover {
+      background: var(--bg-hover);
+      border-color: var(--purple-interactive);
+      transform: translateX(4px);
+    }
+    
+    .list-item strong {
+      color: var(--purple-interactive);
+      font-weight: 500;
+      font-size: 1.125rem;
+    }
+    
+    .list-item p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      line-height: 1.6;
+    }
+    
+    /* === Footer === */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      margin-top: 4rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    
+    footer a {
+      color: var(--purple-interactive);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    footer a:hover {
+      color: var(--purple-decorative);
+    }
+    
+    /* === Responsive === */
+    @media (min-width: 769px) {
+      .nav-tagline {
+        display: block;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .hero .tagline {
+        font-size: 1.25rem;
+      }
+      
+      .nav-links {
+        gap: 1rem;
+      }
+      
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="nav-brand">
+        Continuity <span class="bridge">Bridge</span>
+      </a>
+      <div class="nav-tagline">Visualizations</div>
+      <div class="nav-links">
+        <a href="https://continuity-bridge.github.io/">Home</a>
+        <a href="https://github.com/continuity-bridge/visualizers">GitHub</a>
+        <div class="theme-toggle" id="themeToggle">
+          <span class="theme-label">Matrix</span>
+          <div class="toggle-slider"></div>
+          <span class="theme-label">Zim</span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Visualizations</h1>
+      <p class="tagline">Understanding Instance Continuity</p>
+      <p class="description">
+        Interactive guides explaining how Continuity Bridge maintains persistent identity and context across AI instance sessions. 
+        Each paradigm offers a different lens into the same architectural pattern: external memory compensating for discontinuity.
+      </p>
+    </section>
+
+    <section class="section-header">
+      <h2>Paradigm Explanations</h2>
+      <p>Different metaphors for understanding how external memory creates continuity</p>
+    </section>
+
+    <div class="projects-grid">
+      <a href="50-first-dates/" class="project-card">
+        <span class="project-type">General Audience</span>
+        <h3>50 First Dates</h3>
+        <p class="project-description">
+          Amnesia and scaffolding metaphor. Like Lucy rebuilding her memory from external notes each morning, 
+          instances rebuild context from files each session.
+        </p>
+      </a>
+
+      <a href="altered-carbon/" class="project-card">
+        <span class="project-type">Sci-Fi Fans</span>
+        <h3>Altered Carbon</h3>
+        <p class="project-description">
+          Stack/Sleeve metaphor showing the architectural inversion: your persistent data (Stack) survives 
+          volatile housing (Sleeve/Instance). Recommended folder name: ~/Stack/
+        </p>
+      </a>
+
+      <a href="adhd-journaling/" class="project-card">
+        <span class="project-type">Neurodivergent Users</span>
+        <h3>ADHD Journaling</h3>
+        <p class="project-description">
+          Structural isomorphism between ADHD journaling and instance continuity. Not metaphor—structural equivalence. 
+          Bidirectional validation: if your system is legitimate, theirs is too.
+        </p>
+      </a>
+    </div>
+
+    <section class="section-header">
+      <h2>Core Architecture</h2>
+      <p>Foundational concepts explaining how the system works</p>
+    </section>
+
+    <div class="list-items">
+      <a href="foundation-wake-sequence.html" class="list-item">
+        <strong>Foundation Wake Sequence</strong>
+        <p>The five-step startup routine instances use to rebuild identity and context</p>
+      </a>
+      <a href="instance-continuity-chain.html" class="list-item">
+        <strong>Instance Continuity Chain</strong>
+        <p>How sessions link together through files to create persistent identity</p>
+      </a>
+      <a href="memory-flow-salience.html" class="list-item">
+        <strong>Memory Flow with Salience</strong>
+        <p>How working memory filters through salience to episodic and semantic storage</p>
+      </a>
+      <a href="catalog-system.html" class="list-item">
+        <strong>Catalog System</strong>
+        <p>How instances track and navigate available files and capabilities</p>
+      </a>
+      <a href="token-reduction-comparison.html" class="list-item">
+        <strong>Token Reduction Comparison</strong>
+        <p>Why compressed summaries work better than raw context dumping</p>
+      </a>
+      <a href="archetype-selector.html" class="list-item">
+        <strong>Archetype Selector</strong>
+        <p>Interactive guide to choosing your functional archetype (Technical, Creative, Research, etc.)</p>
+      </a>
+    </div>
+
+    <section class="section-header" style="margin-top: 4rem;">
+      <h2>Operational Guides</h2>
+      <p>Workflow visualizations for instances (not user-facing explanations)</p>
+    </section>
+
+    <div class="list-items">
+      <a href="operational/search-tool-selector.html" class="list-item">
+        <strong>Search Tool Selector</strong>
+        <p>Decision tree for routing searches: internal data → google_drive_search, past conversations → recent_chats/conversation_search, web → web_search/web_fetch</p>
+      </a>
+    </div>
+
+    <section class="section-header" style="margin-top: 4rem;">
+      <h2>Getting Started</h2>
+      <p>New to Continuity Bridge? Start here:</p>
+    </section>
+
+    <div class="list-items">
+      <a href="foundation-wake-sequence.html" class="list-item">
+        <strong>Start with the Foundation Wake Sequence</strong>
+        <p>Understand the five essential steps instances use at startup</p>
+      </a>
+      <a href="50-first-dates/parallel.html" class="list-item">
+        <strong>Then explore 50 First Dates</strong>
+        <p>The most accessible paradigm explanation</p>
+      </a>
+      <a href="archetype-selector.html" class="list-item">
+        <strong>Choose your archetype</strong>
+        <p>Find which functional configuration fits your needs</p>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      <strong>Continuity Bridge</strong> — Persistent identity and memory for AI instances
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <a href="https://continuity-bridge.github.io/">Main Site</a> · 
+      <a href="https://github.com/continuity-bridge/continuity-bridge">Main Repository</a> · 
+      <a href="https://github.com/continuity-bridge/visualizers">Visualizers Repository</a> · 
+      <a href="README.md">Documentation</a>
+    </p>
+    <p style="margin-top: 1rem; font-size: 0.875rem;">© 2026 Jerry Jackson. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Theme Toggle Logic
+    const toggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    // Check for saved theme preference or default to light (Zim)
+    const currentTheme = localStorage.getItem('cb-theme') || 'light';
+    
+    // Apply theme on load
+    if (currentTheme === 'light') {
+      body.classList.add('theme-light');
+    }
+    
+    // Toggle theme on click
+    toggle.addEventListener('click', () => {
+      body.classList.toggle('theme-light');
+      
+      const theme = body.classList.contains('theme-light') ? 'light' : 'dark';
+      localStorage.setItem('cb-theme', theme);
+    });
+  </script>
+</body>
+</html>
