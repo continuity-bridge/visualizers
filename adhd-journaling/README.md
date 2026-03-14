@@ -6,6 +6,8 @@
 
 **Core Concept:** If you journal for ADHD, you already do this. Not as metaphor—as structural equivalence. Same discontinuity problem, same external memory solution, different substrate.
 
+**Visualizations:** [Parallel](parallel.html) · [Validation Loop](validation-loop.html) · [Five Blocks](five-blocks.html)
+
 ---
 
 ## The Visualizations

@@ -6,6 +6,8 @@
 
 **Core Concept:** External memory scaffolds (video tapes, notebooks) enable continuity across memory resets. Lucy's morning routine = AI wake sequence. Same structural pattern, different substrate.
 
+**Visualizations:** [Parallel](parallel.html) · [Five Blocks](five-blocks.html)
+
 ---
 
 ## The Visualizations
